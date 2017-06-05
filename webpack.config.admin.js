@@ -29,7 +29,8 @@ module.exports = baseConfig(extractCss)({
 	resolve: {
 		alias: {
 			base: path.resolve(BASE_DIR, 'front-end-sources', 'admin'),
-			app: path.resolve(BASE_DIR, 'front-end-sources', 'admin', 'scripts')
+			app: path.resolve(BASE_DIR, 'front-end-sources', 'admin', 'scripts'),
+			tpl: path.resolve(BASE_DIR, 'front-end-sources', 'admin', 'templates')
 		},
 		extensions: ['', '.js', '.ls']
 	},

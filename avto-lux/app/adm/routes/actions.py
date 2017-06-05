@@ -494,23 +494,34 @@ class AdminMainHandler(JsonResponseMixin):
 			'JSON': 'data_fields' if section == 'data' else 'files',
 			'INTEGER': 'text'
 		}
-		vidgets = []
+		fields_list = []
 		
 		for field in fields:
 			try:
-				if 'id' in field['name'] or 'prev_elem' in field['name']:
+				
+				# ignore 'id', 'section_id' and stuff
+				if 'id' in field['name'] or field['name'] == 'prev_elem':
 					continue
-				vidget = {
+				
+				field_dict = {
 					'name': field['name'],
 					'type': types_map[str(field['type'])],
 					'default_val': field['default']
 				}
-				vidgets.append(vidget)
+				if field_dict['type'] == 'files':
+					if field_dict['name'] == 'main_image':
+						field_dict['mode'] = 'single'
+					else:
+						field_dict['mode'] = 'multiple'
+				
+				fields_list.append(field_dict)
+				
 			except KeyError:
 				continue
 		
 		values = None
 		if edit and id is not None:
+			
 			try:
 				data = session.query(Model).filter_by(id=id).one()
 			except Exception as e:
@@ -521,7 +532,29 @@ class AdminMainHandler(JsonResponseMixin):
 					(Model.__name__, id, e)
 				)
 				raise e
-			values = data.item
+			
+			def get_field_type_by_name(name):
+				for item in fields_list:
+					if item['name'] == name:
+						return item['type']
+			# extract values from model
+			def value_resolver(key, val):
+				field_type = get_field_type_by_name(key)
+				if field_type == 'files':
+					try:
+						files = json.loads(val)
+						assert type(files) is list
+					except:
+						files = []
+					return json.dumps(files)
+				elif field_type == 'checkbox':
+					if type(val) is bool:
+						return val
+					else:
+						return False
+				else:
+					return val
+			values = { k: value_resolver(k, v) for k, v in data.item.items() }
 			
 			if section == 'catalog_element':
 				values.update({'section_id': data.section_id})
@@ -537,7 +570,7 @@ class AdminMainHandler(JsonResponseMixin):
 				)
 				raise e
 			
-			vidgets.append({
+			fields_list.append({
 				'name': 'section_id',
 				'type': 'select',
 				'default_val': None,
@@ -554,7 +587,7 @@ class AdminMainHandler(JsonResponseMixin):
 		
 		return self.json_response({
 			'status': 'success',
-			'fields_list': vidgets,
+			'fields_list': fields_list,
 			'values_list': values
 		})
 	

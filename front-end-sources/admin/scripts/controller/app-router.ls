@@ -77,7 +77,10 @@ class AppRouterController extends Controller
 	\catalog-section-add : !->
 		@panel-page-handler <| new CatalogSectionAddView! .render!
 	\catalog-section-edit : (sid)!->
-		new CatalogSectionEditView { \section-id : Number sid, id: Number sid }
+		new CatalogSectionEditView {
+			\section-id : Number sid
+			id: Number sid
+		}
 			..render!
 			@panel-page-handler ..
 	
@@ -88,7 +91,10 @@ class AppRouterController extends Controller
 		new CatalogElementAddView { \section-id : Number sid } .render!
 		|> @panel-page-handler
 	\catalog-element-edit : (sid, eid)!->
-		new CatalogElementEditView { \section-id : Number sid, id: Number eid }
+		new CatalogElementEditView {
+			\section-id : Number sid
+			id: Number eid
+		}
 			..render!
 			@panel-page-handler ..
 	

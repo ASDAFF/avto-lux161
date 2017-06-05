@@ -28,10 +28,12 @@ implements type-validation-model-mixin
 	url: null
 	
 	attributes-typings:
+		# view-model stuff
 		local: (instanceof LocalizationModel)
 		section: \String # for templates
 		form_type: (in <[add edit]>) # for templates
 		
+		# model stuff
 		name: \String
 		type: null # must be overwritten in type-specific child class
 		default_val: \Null # any default value now is null

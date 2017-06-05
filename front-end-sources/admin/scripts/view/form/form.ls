@@ -20,6 +20,8 @@ require! {
 	\app/model/form/field-by-type/text     : { TextFormFieldModel }
 	\app/model/form/field-by-type/html     : { HtmlFormFieldModel }
 	\app/model/form/field-by-type/password : { PasswordFormFieldModel }
+	\app/model/form/field-by-type/files    : { FilesFormFieldModel }
+	\app/model/form/field-by-type/select   : { SelectFormFieldModel }
 	
 	# utils
 	\app/utils/panic-attack : { panic-attack }
@@ -55,19 +57,27 @@ class CheckboxItemView extends InputItemView
 		@model.check-if-is-valid!
 
 
-class HTMLInputItemView extends InputItemView
+class HtmlInputItemView extends InputItemView
 	
 	class-name: \html
 	template: \form/html
 	ui:
 		textarea: \textarea
+	events:
+		'input  @ui.textarea': camelize \update-value
+		'change @ui.textarea': camelize \update-value
 	
-	check-for-alive: -> Boolean @?ui?textarea?ckeditor?
-		
 	on-render: !->
 		<~! set-timeout _, 1 # hack
-		return unless @check-for-alive!
-		@ui.textarea.ckeditor!
+		@ui?textarea?ckeditor? on: change: !~> @update-value!
+	
+	update-value: !->
+		@model.set \value, @ui.textarea.val!
+		@model.check-if-is-valid!
+	
+	on-destroy: !->
+		@ui?textarea?editor?remove-all-listeners!
+		super? ...
 
 
 class SelectItemView extends InputItemView
@@ -153,8 +163,10 @@ class FormView extends CompositeView
 		switch
 		| f CheckboxFormFieldModel => CheckboxItemView
 		| f TextFormFieldModel     => TextItemView
-		| f HtmlFormFieldModel     => null # TODO
+		| f HtmlFormFieldModel     => HtmlInputItemView
 		| f PasswordFormFieldModel => PasswordItemView
+		| f FilesFormFieldModel    => FilesItemView
+		| f SelectFormFieldModel   => SelectItemView
 		| otherwise =>
 			panic-attack new Error "Cannot find View class for model instance"
 

@@ -36,7 +36,7 @@ export drop-delete-table-list-view-mixin =
 		
 		<~! @delete-by-model-id model-id
 		
-		@ui.'drop-delete-zone'? .remove-class \drop-over
+		@ui.'drop-delete-zone'?remove-class \drop-over
 	
 	# can be overwritten to put some middleware
 	delete-by-model-id: (model-id, cb = null)!->

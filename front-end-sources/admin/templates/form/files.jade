@@ -1,12 +1,11 @@
 label
 	span= local.get('sections')[section].form[name].title
 	=' '
-	input(type="file", multiple)
+	if mode == 'single'
+		input(type="file")
+	else if mode == 'multiple'
+		input(type="file" multiple)
 
-- var value = ''
-if values[name]
-	- var value = values[name]
-input(type="hidden", name=name, value=value)
-
-span= local.get('sections')[section].form[name].uploaded_earlier
-ul.js-uploaded-earlier-list.list-group
+.js-uploaded-earlier-block(style="display:none;")
+	span= local.get('sections')[section].form[name].uploaded_earlier
+	.js-uploaded-earlier-list-region

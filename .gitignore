@@ -18,6 +18,7 @@ config.yaml
 TMP
 log.txt
 .lvimrc
+tags
 
 # node
 node_modules

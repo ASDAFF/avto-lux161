@@ -30,9 +30,15 @@ B.ajax = (opts)->
 		type         : opts.force-method ? \POST
 		method       : opts.force-method ? \POST
 		data-type    : \json
-		content-type : 'application/x-www-form-urlencoded; charset=UTF-8'
 		parse        : on
-		process-data : on
+		process-data :
+			unless opts.data instanceof FormData
+			then on
+			else off
+		content-type :
+			unless opts.data instanceof FormData
+			then 'application/x-www-form-urlencoded; charset=UTF-8'
+			else off
 		error: (xhr, status, err)!->
 			return if status is \abort
 			if xhr?responseJSON?status is \unauthorized

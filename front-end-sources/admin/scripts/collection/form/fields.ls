@@ -6,6 +6,7 @@
  */
 
 require! {
+	# config
 	\app/config.json
 	
 	# models
@@ -16,6 +17,8 @@ require! {
 	\app/model/form/field-by-type/text     : { TextFormFieldModel }
 	\app/model/form/field-by-type/html     : { HtmlFormFieldModel }
 	\app/model/form/field-by-type/password : { PasswordFormFieldModel }
+	\app/model/form/field-by-type/files    : { FilesFormFieldModel }
+	\app/model/form/field-by-type/select   : { SelectFormFieldModel }
 	
 	# helpers
 	\app/utils/panic-attack : { panic-attack }
@@ -44,15 +47,9 @@ export class FormFieldsCollection extends BasicCollection
 				Do not set 'id' option for FormFieldsCollection
 				\ when 'type' option is 'add'
 			"
-		if opts.type is \add
-		and typeof! opts.\item-section-id not in <[Undefined Number]>
+		if typeof! opts.\item-section-id not in <[Undefined Number]>
 			panic-attack new Error "
 				Incorrect 'item-section-id' option for FormFieldsCollection
-			"
-		if opts.type isnt \add and opts.'item-section-id'?
-			panic-attack new Error "
-				Option 'item-section-id' is required
-				\ only when 'type' option value is 'add'
 			"
 	
 	model: (attrs = {}, opts = {})->
@@ -66,8 +63,8 @@ export class FormFieldsCollection extends BasicCollection
 				panic-attack new Error "
 					Unexpected type ('#{attrs.type}') for '#section' section
 				"
-		| otherwise =>
-			unless attrs.type in <[checkbox text html files password]>
+		| otherwise => # other sections
+			unless attrs.type in <[checkbox text html files password select]>
 				panic-attack new Error "Unexpected type: '#{attrs.type}'"
 		
 		attrs =
@@ -81,6 +78,8 @@ export class FormFieldsCollection extends BasicCollection
 			| \text     => TextFormFieldModel
 			| \html     => HtmlFormFieldModel
 			| \password => PasswordFormFieldModel
+			| \files    => FilesFormFieldModel
+			| \select   => SelectFormFieldModel
 			| otherwise => panic-attack new Error "
 				There is no model for form field type: '#{attrs.type}'
 			"
@@ -110,10 +109,21 @@ export class FormFieldsCollection extends BasicCollection
 	parse: (response)->
 		try
 			[{ ..name, ..type, ..default_val } <<< (
-				switch @get-option \type | \edit =>
-					switch ..type
-					| \password => void
-					| otherwise => value: response.values_list[..name]
+				switch @get-option \type
+					| \add =>
+						switch ..type
+						| \select => options: ..list_values
+						| \files  => mode: ..mode
+					| \edit =>
+						switch ..type
+						| \password => void
+						| \select   =>
+							options: ..list_values
+							value: response.values_list[..name]
+						| \files    =>
+							mode: ..mode
+							value: response.values_list[..name]
+						| otherwise => value: response.values_list[..name]
 			) for response.fields_list]
 		catch
 			panic-attack e
@@ -141,14 +151,19 @@ export class FormFieldsCollection extends BasicCollection
 			| \add  => \create
 			| \edit => \update
 		
+		get-serialized-field-value = ({ value: v })->
+			| v is on                      => \on
+			| v instanceof BasicCollection => JSON.stringify v.toJSON!
+			| otherwise                    => v
+		
 		args = {}
 			<<< (switch | section isnt \accounts => { section })
 			<<< (switch | type is \edit => { id: @get-option \id })
 			<<< (switch
-				| type is \add and (@get-option \item-section-id)? =>
+				| (@get-option \item-section-id)? =>
 					{ section_id: @get-option \item-section-id })
 			<<< { \
-				[..name, if ..value is on then \on else ..value] for @toJSON!
+				[..name, get-serialized-field-value ..] for @toJSON!
 				when typeof! ..value isnt \Boolean or ..value is on }
 		
 		req-opts = {}

@@ -5,17 +5,15 @@
  * @author Andrew Fatkulin
  */
 
-require! {
-	'../../form-edit' : FormEditView
-}
+require! \app/view/form-edit : FormEditView
+
 
 class CatalogSectionAddView extends FormEditView
 	initialize: !->
 		@options.type = \add
-		section-id = @get-option \section-id
-		@options[\section-id] = section-id
-		@options[\list-page] = '#panel/catalog'
+		@options\list-page = \#panel/catalog
 		@options.section = \catalog_section
-		FormEditView.prototype.initialize ...
+		super? ...
+
 
 module.exports = CatalogSectionAddView

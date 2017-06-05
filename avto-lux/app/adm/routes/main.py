@@ -210,19 +210,33 @@ class UpdateUser(AuthMixin, JsonResponseMixin):
 
 class FileUpload(JsonResponseMixin):
 	
+	_extension_map = {
+		'application/octet-stream': '', # without extension
+		'image/svg+xml': '.svg',
+		'text/plain': '.txt'
+	}
+	
 	@require_auth
 	@request_except_handler
 	def post(self):
 		
 		file_path = config('UPLOAD_FILES_PATH')
 		hashes = []
+		
 		for f in self.request.files.items():
+			
 			_file = f[1][0]
 			
 			_filename = hashlib.sha512(
 				str(time.time()).encode('utf-8')
 			).hexdigest()[0:35]
-			fname = _filename + '.' + _file['content_type'].split('/')[1]
+			
+			if _file['content_type'] in self._extension_map:
+				ext = self._extension_map[_file['content_type']]
+			else:
+				ext = '.' + _file['content_type'].split('/')[1]
+			
+			fname = _filename + ext
 			
 			f = open(os.path.join(file_path, fname), 'wb')
 			f.write(_file['body'])

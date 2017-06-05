@@ -6,9 +6,11 @@
  */
 
 require! {
+	# libs
 	\backbone       : { history, Collection }
 	\backbone.wreqr : { radio }
 	
+	# config
 	\app/config.json
 	
 	# models
@@ -46,8 +48,7 @@ class FormEditView extends SmoothView
 				Incorrect 'id' option
 				\ (it's required when 'type' option value is 'edit')
 			"
-		if (@get-option \type) is \add
-		and (@get-option \section-id) not in <[Undefined Number]>
+		if (typeof! @get-option \section-id) not in <[Undefined Number]>
 			panic-attack new Error "Incorrect 'section-id' option"
 		
 		
@@ -62,7 +63,7 @@ class FormEditView extends SmoothView
 				type    : @get-option \type # 'add' or 'edit'
 			<<< (switch @get-option \type | \edit => id: @get-option \id)
 			<<< (switch
-				| (@get-option \type) is \add and (@get-option \section-id)? =>
+				| (@get-option \section-id)? =>
 					\item-section-id : @get-option \section-id)
 		
 		@form-fields-view-model = new FormViewModel do
