@@ -1,5 +1,12 @@
 # avto-lux161
 
+## WARNING
+
+Project was left in the middle of refactoring process,
+it most likely in a broken state.
+Changes just stored to archive it, it's not planned to work on this project
+anymore.
+
 ## How to deploy
 
 1. Clone this repo and go to the cloned directory:
